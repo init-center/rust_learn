@@ -571,4 +571,141 @@ fn main() {
         //     }
         // }
     }
+
+    // 枚举
+    #[derive(Debug)]
+    enum Ip {
+        V4,
+        V6,
+    }
+
+    // 创建成员实例
+    let v4 = Ip::V4;
+    let v6 = Ip::V6;
+    println!("{:?}", v4);
+    println!("{:?}", v6);
+
+    // 每个枚举成员都可以关联其它值
+    #[derive(Debug)]
+    enum IpAddr {
+        V4(String),
+        V6(String),
+    }
+    let v4 = IpAddr::V4(String::from("127.0.0.1"));
+    let v6 = IpAddr::V6(String::from("::1"));
+    println!("{:?}", v4);
+    println!("{:?}", v6);
+
+    // 每个成员都可以关联不同的类型
+    enum Message {
+        Quit,
+        Move { x: i32, y: i32 },
+        Write(String),
+        ChangeColor(i32, i32, i32),
+    }
+
+    // 枚举上也可以实现方法
+    impl Message {
+        fn call(&self) {
+            // 在这里定义方法体
+        }
+    }
+
+    let m = Message::Write(String::from("hello"));
+    m.call();
+
+    // rust中没有控制，但标准库的prelude中有一个可以编码存在或不存在概念的枚举
+    // 这个枚举就是Option<T>
+    // 定义如下
+    // enum Option<T> {
+    //     Some(T),
+    //     None,
+    // }
+    // 因为处于prelude中，所以不需要引入包
+    // 甚至Some和None也不需要指定Option::前缀
+    let some_number = Some(5);
+    let some_string = Some("a string");
+
+    let absent_number: Option<i32> = None; // 使用Null时必须显式定义类型
+    println!("{:?}, {:?}, {:?}", some_number, some_string, absent_number);
+
+    // match 流程控制（类似switch）
+
+    #[derive(Debug)]
+    enum UsState {
+        Alabama,
+        Alaska,
+        // --snip--
+    }
+
+    enum Coin {
+        Penny,
+        Nickel,
+        Dime,
+        Quarter(UsState),
+    }
+
+    fn value_in_cents(coin: Coin) -> u8 {
+        match coin {
+            Coin::Penny => 1,
+            Coin::Nickel => {
+                println!("{}", 5);
+                5
+            }
+            Coin::Dime => 10,
+            Coin::Quarter(state) => {
+                println!("State quarter from {:?}", state);
+                25
+            }
+        }
+    }
+
+    let c = value_in_cents(Coin::Quarter(UsState::Alaska));
+    println!("{}", c);
+
+    // 使用match来匹配Option<T>
+    fn plus_one(x: Option<i32>) -> Option<i32> {
+        match x {
+            // match中必须匹配所有情况，否则报错
+            None => None,
+            Some(i) => Some(i + 1),
+        }
+    }
+
+    let five = Some(5);
+    let six = plus_one(five);
+    let none = plus_one(None);
+
+    let some_u8_value = 0u8;
+    match some_u8_value {
+        1 => println!("one"),
+        3 => println!("three"),
+        5 => println!("five"),
+        7 => println!("seven"),
+        // 使用 | 来匹配多个值
+        9 | 11 => println!("nine or eleven"),
+        // 范围目前只支持 x..的形式，其它形式报错
+        13.. => println!("thirteen range fifteen"),
+        // 不想处理某些情况时，可以使用下划线_，类似于default
+        _ => (),
+    }
+
+    // if let
+    // 有时候我们只想处理一种情况，如果用match匹配就要写所有情况
+    // 或者使用_，但还是太麻烦，这时可使用 if let
+    // 这相当于match的语法糖，和match的工作方式相同，只不过不需要我们写那么多代码
+    {
+        let some_u8_value = Some(0u8);
+        if let Some(3) = some_u8_value {
+            println!("three");
+        }
+
+        // if let 可以加else
+        // 这就和match中的_类似
+        if let Some(3) = some_u8_value {
+            println!("three");
+        } else {
+            println!("other");
+        }
+    }
 }
