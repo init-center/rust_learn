@@ -708,4 +708,227 @@ fn main() {
             println!("other");
         }
     }
+
+    // 常用的集合（Vector, String, HashMap）
+    // Vector在rust中类型是Vec<T>
+    // Vector相当于可变长度的数组
+    let v: Vec<i32> = Vec::new();
+    println!("{:?}", v);
+    // 使用初始值创建需要使用vec!();
+    // 如果需要改变，声明为mut
+    let mut v = vec![1, 2, 3];
+    println!("{:?}", v);
+    v.push(4);
+    println!("{:?}", v);
+    // 读取，两种方式，索引或者get
+    // 使用索引如果越界会panic
+    let third = &v[2];
+    println!("{}", third);
+    // get 返回的是option
+    match v.get(2) {
+        Some(third) => println!("The third element is {}", third),
+        None => println!("There is no third element"),
+    }
+    // vector和其它struct一样，当离开作用域就会被清除，它的所有元素也会被清除
+
+    //遍历 使用 for...in
+    for i in &v {
+        println!("{}", i);
+    }
+
+    // 遍历
+    for i in &mut v {
+        // 引用不能直接计算，所以需要解引用
+        *i *= 2;
+    }
+    println!("{:?}", v);
+
+    // 字符串
+    // rust中的字符串是Byte的集合
+    // 它提供了一些方法，能将byte解析为文本
+    // Rust的核心语言层面，只有一个字符串类型，就是字符串切片str(或&str)
+    // 字符串切片是对存储在其它地方，UTF-8编码的字符串的引用
+    // 字符串字面值是存在二进制文件中，也是字符串切片
+
+    // String类型来自标准库而不是核心语言
+    // String可增长、可修改、可拥有所有权
+
+    // rust中所说的字符串一般指String或者&str两种类型
+    // rust标准库中还包含了很多其它字符串类型。比如OsString、OsStr、CString、CStr
+    // 这些类型中，String后缀的可拥有所有权，Str后缀的可借用
+    // 这些字符串类型可存储不同编码的文本或在内存中以不同的形式展现
+
+    // String，因为String本身是Byte的集合，所以很多Vec的操作都可用于String
+    // 比如String::new()函数创建一个空串
+    // 或者使用实现了Display trait的类型的to_string()方法转化一个String变量
+    let s = "this is a string".to_string();
+    println!("{}", s);
+    // 使用String::from函数，可从字面值创建String
+    let s = String::from("abc");
+    println!("{}", s);
+    // 更新string
+    // push_str()，把一个字符串切片附加到String
+    // push()方法，把单个字符附加到String
+    // + 连接字符串
+    let s1 = String::from("a");
+    let s2 = String::from("b");
+    // 注意，相加是后面的必须使用引用，并且编译器会发生强转(deref coercion)
+    // 实际上调用了类似 fn add(self, s:&str) -> String {...}
+    // 可以多个相加
+    let s3 = s1 + &s2;
+    println!("{}", s3);
+
+    // 使用format!这个宏来连接多个字符串
+    let s = format!("{}-{}", s2, s3);
+    println!("{}", s); // b-ab
+
+    // rust中的字符串是不支持通过索引来访问的
+    // 获取字节数
+    let len = String::from("Hello").len();
+    println!("{}", len); // 5 (utf-8，英文一个一字节)
+    let len = String::from("你好").len();
+    println!("{}", len); // 6 （中文汉字一般一个3字节）
+
+    let string_length = "我正在学习Rust~";
+    // 按字节处理
+    println!("\"{}\"的字节长度 : {}", string_length, string_length.len());
+    // 按字符处理
+    println!(
+        "\"{}\"的字符长度 : {}",
+        string_length,
+        string_length.chars().count()
+    );
+
+    // HshMap<K, V>
+    // 创建
+    use std::collections::HashMap; // 首先需要引入
+                                   // 可以直接写类型，帮助编译器推断类型
+    let mut hm: HashMap<String, i32> = HashMap::new();
+    // 也可以不写类型
+    let mut hm = HashMap::new();
+    // 使用insert插入，上面不写类型，下面写了插入后，编译器也能推断
+    hm.insert(String::from("a"), 1);
+    // 调用insert时，如果hm保存的类型不是引用，插入的值的所有权被转移，后续不能访问
+    let item = String::from("b");
+    hm.insert(item, 2);
+    // println!("{}", item);    // 不行，报错
+
+    // 在hashmap生效期间，被引用的值必须有效
+
+    // 遍历hashMap
+    for(k, v) in &hm {
+        println!("{}: {}", k, v);
+    }
+
+    // hashMap所有的key必须是同一种类型，所有的value必须是同一种类型
+    // 另一种创建hashMap的方法，使用collect()方法
+    let teams = vec![String::from("Blue"), String::from("Red")];
+    let initial_scores = vec![10, 50];
+    // 遍历器调用zip将两个vec合并成存储一一对应的元组的数组，使用collect即可生成map
+    // 这里我们需要手动声明结果的类型，因为collect可以返回很多种不同的数据结构。但HashMap中的K和V
+    // 使用了两个下划线，这里可以让编译器根据Vec中的类型帮助我们推断K和V的类型
+    let scores: HashMap<_, _> = teams.iter().zip(initial_scores.iter()).collect();
+    println!("{:#?}", scores);
 }
+
+// rust的模块系统
+// 由顶至下为
+// package(包) -> crate(单元包) -> Module(模块) -> path(路径)
+
+// crate有两种类型，binary和library
+// crate root是crate的根Module
+// 一个package包含一个cargo.toml，它是包的描述文件
+// 只能包含0-1个library crate
+// 可以包含任意数量的binary crate
+// 必须至少包含一个crate（binary或library）
+
+// package下src/main.rs是binary crate的 crate root
+// crate名与package名相同
+
+//package下src/lib.rs是library的 crate root
+// 有这个文件说明package包含一个library crate
+// crate名与package名相同
+
+// cargo会把crate root文件交给rustc来构建library或binary
+
+// 一个package可以同时包含src/main.rs和src/lib.rs
+// 表明该package包含一个binary crate 和 一个 library crate
+// 一个 package也可以有多个binary crate，文件放在src/bin中
+// 每个文件都是单独的binary crate
+
+// module可以在一个crate中对代码进行分组，以及控制项目的私有性
+// 建立module使用mod关键字，mod可以嵌套
+
+// 在rust的模块中找到某个条目，需要使用路径
+// 路径有两种使用形式
+// 绝对路径: 从crate root开始，使用crate的名称或者使用crate字面值（就是直接写crate这个词）
+// 相对路径: 从当前模块开始，使用self，super或当前模块的标识符
+// 路径至少由一个标识符组成，标识符之间使用::连接
+mod front_of_house {
+    // pub表示这是公开的，因为rust中的所有条目默认都是私有的
+    // 要想公开，必须加pub
+    // 父模块无法访问子模块中的私有条目
+    // 子模块里可以使用所有祖先模块中的条目
+    pub mod hosting {
+        // rust中使用super关键字来访问父级模块路径中的 内容，类似文件系统的中..
+        pub fn add_to_wait_list() -> super::Breakfast {
+            super::Breakfast {
+                toast: String::from("wheat"),
+                seasonal_fruit: String::from("peaches"),
+            }
+        }
+    }
+
+    // struct是公共的，但是字段依然不是公共的
+    // 每个字段都自己单独加pub
+    // 不加的字段依然是私有的
+    pub struct Breakfast {
+        pub toast: String,
+        seasonal_fruit: String,
+    }
+
+    // 但枚举不同，只要将枚举设置为公共的
+    // 那么它的所有成员都是公共的
+    pub enum Appetizer {
+        // 里面的成员都是公共的
+        Soup,
+        Salad,
+    }
+}
+
+pub fn eat_at_restaurant() {
+    crate::front_of_house::hosting::add_to_wait_list();
+    // 同一级可以直接写模块名
+    front_of_house::hosting::add_to_wait_list();
+}
+
+// 使用 use 关键字可以将路径导入到作用域内
+// use crate::front_of_house::hosting;
+// use front_of_house::hosting;
+
+// use的习惯用法
+// 函数： 将函数的父级模块引入作用域（指定到父级）
+// struct,enum,其它：指定完成路径（指定到本身）
+// 同名条目，指定到父级或者使用as指定别名，比如 use std::io::Result as IoResult
+
+// 将路径引入到作用域后还可以同时导出，导入时使用pub use即可（即导入又导出）
+
+// use 可以一条use引入同一个路径下的多个条目
+// 比如 use std::{cmp::Ordering, io} 引入了std下的cmp::Ordering和io
+// std::io::{self, write} self代表std::io自身，同时还引入了下面的write
+
+// 引入路径下的所有条目使用*号，谨慎使用，一般不用
+// std::io::*
+
+// 如何使用外部包
+// cargo.toml添加依赖的包（cargo会从crates.io拉取包）
+// use 将特定条目引入作用域即可
+
+// 可以将模块的内容移动到其它文件中
+// 在模块定义时后面跟的是分号而不是代码块，Rust会从src下与模块同名的文件中加载内容
+// 比如在lib.rs中写 mod front_of_house;
+// 那么就需要在src下创建front_of_house.rs文件
+// 文件中写它代码块中的内容（注意是代码块中的内容，本身的定义不需要再写）
+// 如果是多级模块拆分，模块在src下的路径需要和模块的路径一致
+// 比如front_of_house下再拆分出hosting，front_of_house中写pub mod hosting;
+// 需要在src/front_of_house/hosting.rs中写hosting模块的内容
